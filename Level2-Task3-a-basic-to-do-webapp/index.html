@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>To-Do Webapp | Tushar Jhunjhunwala</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      background: #ffffff;
+      width: 100%;
+      max-width: 680px;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      padding: 2rem;
+    }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 1.5rem;
+    }
+    .app-header .dot { width: 12px; height: 12px; border-radius: 50%; background: #1D9E75; }
+    .app-header h1 { font-size: 24px; font-weight: 600; color: #1a1a2e; }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 2rem;
+    }
+    .input-row input {
+      flex: 1;
+      padding: 10px 16px;
+      font-size: 15px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 10px;
+      outline: none;
+      transition: border-color 0.2s;
+      color: #1a1a2e;
+    }
+    .input-row input:focus { border-color: #1D9E75; box-shadow: 0 0 0 3px rgba(29,158,117,0.12); }
+    .add-btn {
+      padding: 10px 20px;
+      background: #1D9E75;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s;
+    }
+    .add-btn:hover { background: #0F6E56; }
+
+    .section { margin-bottom: 1.5rem; }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1.5px solid #f0f0f0;
+    }
+    .section-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6b7280;
+    }
+    .badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 9px;
+      border-radius: 20px;
+    }
+    .badge-pending { background: #FAEEDA; color: #854F0B; }
+    .badge-done    { background: #E1F5EE; color: #0F6E56; }
+
+    .task-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .task {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: #fafafa;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 10px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .task:hover { border-color: #1D9E75; box-shadow: 0 2px 8px rgba(29,158,117,0.08); }
+    .task.done { opacity: 0.65; }
+
+    .task-check {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 2px solid #d1d5db;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.15s;
+      font-size: 12px;
+      color: #fff;
+    }
+    .task-check:hover { border-color: #1D9E75; }
+    .task-check.checked { background: #1D9E75; border-color: #1D9E75; }
+
+    .task-text { flex: 1; font-size: 14px; color: #1a1a2e; line-height: 1.5; }
+    .task.done .task-text { text-decoration: line-through; color: #9ca3af; }
+
+    .task-meta { font-size: 11px; color: #9ca3af; white-space: nowrap; }
+
+    .task-actions { display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s; }
+    .task:hover .task-actions { opacity: 1; }
+
+    .icon-btn {
+      width: 30px; height: 30px;
+      border: none; background: transparent;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 8px;
+      font-size: 15px;
+      transition: background 0.15s, color 0.15s;
+      color: #9ca3af;
+    }
+    .icon-btn:hover { background: #f0f4f8; color: #1a1a2e; }
+    .icon-btn.del:hover { background: #fff0f0; color: #dc2626; }
+
+    .edit-input {
+      flex: 1; font-size: 14px;
+      border: none; background: transparent;
+      color: #1a1a2e; outline: none; padding: 0;
+      font-family: inherit;
+    }
+
+    .empty {
+      font-size: 13px;
+      color: #d1d5db;
+      text-align: center;
+      padding: 16px 0;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 11px;
+      color: #d1d5db;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="app-header">
+    <div class="dot"></div>
+    <h1>My Tasks</h1>
+  </div>
+
+  <div class="input-row">
+    <input type="text" id="taskInput" placeholder="Add a new task…" />
+    <button class="add-btn" onclick="addTask()">+ Add task</button>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Pending</span>
+      <span class="badge badge-pending" id="pendingCount">0</span>
+    </div>
+    <div class="task-list" id="pendingList"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Completed</span>
+      <span class="badge badge-done" id="doneCount">0</span>
+    </div>
+    <div class="task-list" id="doneList"></div>
+  </div>
+
+  <footer>Built by Tushar Jhunjhunwala &mdash; Web Dev Internship Task</footer>
+</div>
+
+<script>
+  let tasks = [], nextId = 1;
+
+  function now() {
+    const d = new Date();
+    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) +
+           ' ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+  }
+
+  function addTask() {
+    const inp = document.getElementById('taskInput');
+    const val = inp.value.trim();
+    if (!val) { inp.focus(); return; }
+    tasks.push({ id: nextId++, text: val, done: false, added: now(), completedAt: null });
+    inp.value = '';
+    inp.focus();
+    render();
+  }
+
+  document.getElementById('taskInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addTask();
+  });
+
+  function toggleDone(id) {
+    const t = tasks.find(t => t.id === id);
+    if (!t) return;
+    t.done = !t.done;
+    t.completedAt = t.done ? now() : null;
+    render();
+  }
+
+  function deleteTask(id) {
+    tasks = tasks.filter(t => t.id !== id);
+    render();
+  }
+
+  function startEdit(id) {
+    const t = tasks.find(t => t.id === id);
+    if (!t) return;
+    const el = document.getElementById('task-text-' + id);
+    el.innerHTML = '<input class="edit-input" id="edit-' + id + '" value="' + t.text.replace(/"/g, '&quot;') + '" />';
+    const ei = document.getElementById('edit-' + id);
+    ei.focus(); ei.select();
+    ei.addEventListener('blur', () => finishEdit(id));
+    ei.addEventListener('keydown', e => {
+      if (e.key === 'Enter') finishEdit(id);
+      if (e.key === 'Escape') render();
+    });
+  }
+
+  function finishEdit(id) {
+    const ei = document.getElementById('edit-' + id);
+    if (!ei) return;
+    const val = ei.value.trim();
+    if (val) { const t = tasks.find(t => t.id === id); if (t) t.text = val; }
+    render();
+  }
+
+  function makeTask(t) {
+    const div = document.createElement('div');
+    div.className = 'task' + (t.done ? ' done' : '');
+    div.innerHTML = `
+      <div class="task-check ${t.done ? 'checked' : ''}" onclick="toggleDone(${t.id})" title="${t.done ? 'Mark pending' : 'Mark complete'}">
+        ${t.done ? '✓' : ''}
+      </div>
+      <div id="task-text-${t.id}" class="task-text">${t.text}</div>
+      <span class="task-meta">${t.done && t.completedAt ? 'Done ' + t.completedAt : 'Added ' + t.added}</span>
+      <div class="task-actions">
+        ${!t.done ? `<button class="icon-btn" onclick="startEdit(${t.id})" title="Edit">✏️</button>` : ''}
+        <button class="icon-btn del" onclick="deleteTask(${t.id})" title="Delete">🗑</button>
+      </div>`;
+    return div;
+  }
+
+  function render() {
+    const pending = tasks.filter(t => !t.done);
+    const done    = tasks.filter(t =>  t.done);
+    const pl = document.getElementById('pendingList');
+    const dl = document.getElementById('doneList');
+    pl.innerHTML = ''; dl.innerHTML = '';
+    if (!pending.length) pl.innerHTML = '<div class="empty">No pending tasks — add one above!</div>';
+    else pending.forEach(t => pl.appendChild(makeTask(t)));
+    if (!done.length) dl.innerHTML = '<div class="empty">Completed tasks will appear here.</div>';
+    else done.forEach(t => dl.appendChild(makeTask(t)));
+    document.getElementById('pendingCount').textContent  = pending.length;
+    document.getElementById('doneCount').textContent     = done.length;
+  }
+
+  render();
+</script>
+</body>
+</html>
